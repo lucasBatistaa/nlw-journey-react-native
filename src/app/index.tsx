@@ -6,14 +6,24 @@ import { colors } from '@/styles/colors'
 
 import { Input } from '@/components/input'
 import { Button } from '@/components/button'
+import { Modal } from '@/components/modal'
 
 enum StepForm {
     TRIP_DETAILS = 1,
     ADD_EMAIL = 2,
 }
 
+enum MODAL {
+    NONE = 0,
+    CALENDAR = 1,
+    ADD_EMAIL = 2
+}
+
 export default function Index() {
     const [stepForm, setStepForm] = useState(StepForm.TRIP_DETAILS)
+
+    // Modal 
+    const [ showModal, setShowModal ] = useState(MODAL.NONE)
 
     function handleNextStepForm() {
         if(stepForm === StepForm.TRIP_DETAILS) {
@@ -37,18 +47,12 @@ export default function Index() {
                 
             <View className='w-full bg-zinc-900 p-4 rounded-xl my-8 border border-zinc-800'>
                 <Input> 
-                    <MapPin 
-                        color={colors.zinc[400]}
-                        size={20}
-                    />
+                    <MapPin color={colors.zinc[400]} size={20} />
                     <Input.Field placeholder='Para onde?' editable={stepForm === StepForm.TRIP_DETAILS}/>
                 </Input>
 
                 <Input> 
-                    <IconCalendar 
-                        color={colors.zinc[400]}
-                        size={20}
-                    />
+                    <IconCalendar color={colors.zinc[400]} size={20} />
                     <Input.Field placeholder='Quando?' editable={stepForm === StepForm.TRIP_DETAILS}/>
                 </Input>
 
@@ -92,6 +96,15 @@ export default function Index() {
                     termos de uso e políticas de privacidade.
                 </Text>
             </Text>
+
+            <Modal 
+                title='Selecionar datas' 
+                subtitle='Selecione a data de ida e volta da viagem'
+                visible={showModal === MODAL.CALENDAR}
+                onClose={() => setShowModal(MODAL.NONE)}
+            >
+            
+            </Modal>
         </View>
     )
 }
