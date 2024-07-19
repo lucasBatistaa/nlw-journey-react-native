@@ -1,4 +1,4 @@
-import dayjs, { Dayjs } from "dayjs"
+import dayjs, {Dayjs} from "dayjs"
 import { DateData, CalendarUtils } from "react-native-calendars"
 import { MarkedDates } from "react-native-calendars/src/types"
 

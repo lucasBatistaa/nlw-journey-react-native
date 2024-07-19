@@ -1,12 +1,16 @@
 import { useState } from 'react'
-import { View, Text, Image } from 'react-native'
+import { View, Text, Image, Keyboard, Alert } from 'react-native'
 import { MapPin, Calendar as IconCalendar, Settings2, UserRoundPlus, ArrowRight } from 'lucide-react-native'  
+import { DateData } from 'react-native-calendars'
+import dayjs from 'dayjs'
 
 import { colors } from '@/styles/colors'
+import { calendarUtils, DatesSelected } from '@/utils/calendarUtils'
 
 import { Input } from '@/components/input'
 import { Button } from '@/components/button'
 import { Modal } from '@/components/modal'
+import { Calendar } from '@/components/calendar'
 
 enum StepForm {
     TRIP_DETAILS = 1,
@@ -20,15 +24,36 @@ enum MODAL {
 }
 
 export default function Index() {
+    // DATA
     const [stepForm, setStepForm] = useState(StepForm.TRIP_DETAILS)
+    const [ selectedDates, setSelectedDates ] = useState({} as DatesSelected)
+    const [ destination, setDestination ] = useState('')
 
     // Modal 
     const [ showModal, setShowModal ] = useState(MODAL.NONE)
 
     function handleNextStepForm() {
+        if (destination.trim().length === 0 || !selectedDates.startsAt || !selectedDates.endsAt) {
+            return Alert.alert('Detalhes da viagem', 'Preencha todas as informações da viagem para seguir.')
+        }
+
+        if (destination.length < 4) {
+            return Alert.alert('Detalhes da viagem', 'Destino deve ter pelo menos 4 caracteres')
+        }
+
         if(stepForm === StepForm.TRIP_DETAILS) {
             return setStepForm(StepForm.ADD_EMAIL)
         }
+    }
+
+    function handleSelectDate(selectedDay: DateData) {
+        const dates = calendarUtils.orderStartsAtAndEndsAt({
+            startsAt: selectedDates.startsAt,
+            endsAt: selectedDates.endsAt,
+            selectedDay,
+        })
+
+        setSelectedDates(dates)
     }
 
     return (
@@ -48,12 +73,24 @@ export default function Index() {
             <View className='w-full bg-zinc-900 p-4 rounded-xl my-8 border border-zinc-800'>
                 <Input> 
                     <MapPin color={colors.zinc[400]} size={20} />
-                    <Input.Field placeholder='Para onde?' editable={stepForm === StepForm.TRIP_DETAILS}/>
+                    <Input.Field 
+                        placeholder='Para onde?' 
+                        editable={stepForm === StepForm.TRIP_DETAILS}
+                        onChangeText={setDestination}
+                        value={destination}
+                    />
                 </Input>
 
                 <Input> 
                     <IconCalendar color={colors.zinc[400]} size={20} />
-                    <Input.Field placeholder='Quando?' editable={stepForm === StepForm.TRIP_DETAILS}/>
+                    <Input.Field 
+                        placeholder='Quando?' 
+                        editable={stepForm === StepForm.TRIP_DETAILS}
+                        onFocus={() => Keyboard.dismiss()}
+                        showSoftInputOnFocus={false}
+                        onPressIn={() => stepForm === StepForm.TRIP_DETAILS && setShowModal(MODAL.CALENDAR)}   
+                        value={selectedDates.formatDatesInText} 
+                    />
                 </Input>
 
                 {
@@ -103,7 +140,17 @@ export default function Index() {
                 visible={showModal === MODAL.CALENDAR}
                 onClose={() => setShowModal(MODAL.NONE)}
             >
-            
+                <View className='gap-5 mt-4'>
+                    <Calendar 
+                        minDate={dayjs().toISOString()}
+                        onDayPress={handleSelectDate}
+                        markedDates={selectedDates.dates}
+                    />
+
+                    <Button onPress={() => setShowModal(MODAL.NONE)}>
+                        <Button.Title>Confirmar</Button.Title>
+                    </Button>
+                </View>
             </Modal>
         </View>
     )
